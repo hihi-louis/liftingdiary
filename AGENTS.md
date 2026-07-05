@@ -1,12 +1,20 @@
 <!-- BEGIN:nextjs-agent-rules -->
+
 # This is NOT the Next.js you know
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+
 <!-- END:nextjs-agent-rules -->
 
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Docs first
+
+Before writing or generating any code, always check the relevant doc file(s) in `/docs` first. Follow the conventions and guidance documented there.
+
+- /docs/ui.md
 
 ## Commands
 
