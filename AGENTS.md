@@ -15,6 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Before writing or generating any code, always check the relevant doc file(s) in `/docs` first. Follow the conventions and guidance documented there.
 
 - /docs/ui.md
+- /docs/data-fetching.md
 
 ## Commands
 

@@ -12,10 +12,12 @@ const relations = defineRelations(schema, (r) => ({
     workout: r.one.workoutsTable({
       from: r.workoutExercisesTable.workoutId,
       to: r.workoutsTable.id,
+      optional: false,
     }),
     exercise: r.one.exercisesTable({
       from: r.workoutExercisesTable.exerciseId,
       to: r.exercisesTable.id,
+      optional: false,
     }),
     sets: r.many.setsTable(),
   },
@@ -23,6 +25,7 @@ const relations = defineRelations(schema, (r) => ({
     workoutExercise: r.one.workoutExercisesTable({
       from: r.setsTable.workoutExerciseId,
       to: r.workoutExercisesTable.id,
+      optional: false,
     }),
   },
 }));
