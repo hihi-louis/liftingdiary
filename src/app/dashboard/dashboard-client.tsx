@@ -92,14 +92,14 @@ export function DashboardClient({
         </Card>
 
         <div className="flex min-w-0 flex-col gap-4">
-          <div className="flex min-h-16 items-center justify-between rounded-xl bg-muted/50 px-4 py-3 ring-1 ring-foreground/5">
-            <div>
-              <p className="font-heading text-lg font-semibold leading-none">
+          <div className="flex items-center justify-between rounded-xl bg-muted/50 px-4 py-3 ring-1 ring-foreground/5">
+            <div className="w-28 shrink-0">
+              <p className="font-heading text-lg font-semibold leading-none whitespace-nowrap">
                 {isToday(selectedDate)
                   ? "Today"
                   : format(selectedDate, "EEEE")}
               </p>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-1 text-xs whitespace-nowrap text-muted-foreground">
                 {format(selectedDate, "do MMM yyyy")}
               </p>
             </div>
@@ -185,7 +185,7 @@ export function DashboardClient({
                                   className="font-normal text-muted-foreground"
                                 >
                                   {set.reps} reps
-                                  {weight > 0 ? ` @ ${weight}kg` : ""}
+                                  {weight > 0 ? ` - ${weight}kg` : ""}
                                 </Badge>
                               )
                             })}

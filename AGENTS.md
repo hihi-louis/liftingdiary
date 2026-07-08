@@ -16,6 +16,7 @@ Before writing or generating any code, always check the relevant doc file(s) in 
 
 - /docs/ui.md
 - /docs/data-fetching.md
+- /docs/data-mutation.md
 
 ## Commands
 
