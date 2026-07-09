@@ -2,9 +2,10 @@
 
 import * as React from "react"
 import { format } from "date-fns"
-import { PlusIcon, Trash2Icon } from "lucide-react"
+import { CalendarIcon, PlusIcon, Trash2Icon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -16,6 +17,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import {
   Select,
   SelectContent,
@@ -40,6 +46,9 @@ export function LogWorkoutDialog({
   const [open, setOpen] = React.useState(false)
   const [pending, setPending] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
+  const [workoutDate, setWorkoutDate] = React.useState<Date>(date)
+  const [datePickerOpen, setDatePickerOpen] = React.useState(false)
+  const [title, setTitle] = React.useState("")
   const [exerciseValue, setExerciseValue] = React.useState<string>("")
   const [customExercise, setCustomExercise] = React.useState("")
   const [sets, setSets] = React.useState<SetInput[]>([
@@ -47,26 +56,31 @@ export function LogWorkoutDialog({
   ])
 
   function resetForm() {
+    setWorkoutDate(date)
+    setTitle("")
     setExerciseValue("")
     setCustomExercise("")
     setSets([{ reps: "", weight: "" }])
     setError(null)
   }
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
     setError(null)
     setPending(true)
 
-    formData.set("date", date.toISOString())
-    formData.set("exercise", exerciseValue)
-    formData.set("customExercise", customExercise)
-    formData.set("setCount", String(sets.length))
-    sets.forEach((set, index) => {
-      formData.set(`sets[${index}].reps`, set.reps)
-      formData.set(`sets[${index}].weight`, set.weight)
-    })
+    const exerciseName =
+      exerciseValue === CUSTOM_EXERCISE_VALUE ? customExercise : exerciseValue
 
-    const result = await logWorkout(formData)
+    const result = await logWorkout({
+      date: workoutDate,
+      title: title.trim() || null,
+      exerciseName,
+      sets: sets.map((set) => ({
+        reps: Number(set.reps),
+        weight: set.weight === "" ? null : Number(set.weight),
+      })),
+    })
 
     setPending(false)
     if (result.error) {
@@ -83,6 +97,7 @@ export function LogWorkoutDialog({
       open={open}
       onOpenChange={(nextOpen) => {
         setOpen(nextOpen)
+        if (nextOpen) setWorkoutDate(date)
         if (!nextOpen) resetForm()
       }}
     >
@@ -90,7 +105,7 @@ export function LogWorkoutDialog({
         render={
           <Button className="gap-2">
             <PlusIcon className="size-4" />
-            Log workout
+            Create workout
           </Button>
         }
       />
@@ -98,11 +113,52 @@ export function LogWorkoutDialog({
         <DialogHeader>
           <DialogTitle>Log workout</DialogTitle>
           <DialogDescription>
-            Add an exercise for {format(date, "do MMM yyyy")}.
+            Add an exercise for {format(workoutDate, "do MMM yyyy")}.
           </DialogDescription>
         </DialogHeader>
 
-        <form action={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="title">Title</Label>
+            <Input
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g. Push day"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="date">Date</Label>
+            <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+              <PopoverTrigger
+                render={
+                  <Button
+                    id="date"
+                    type="button"
+                    variant="outline"
+                    className="w-full justify-start gap-2 font-normal"
+                  >
+                    <CalendarIcon className="size-4" />
+                    {format(workoutDate, "do MMM yyyy")}
+                  </Button>
+                }
+              />
+              <PopoverContent align="start" className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={workoutDate}
+                  onSelect={(nextDate) => {
+                    if (nextDate) {
+                      setWorkoutDate(nextDate)
+                      setDatePickerOpen(false)
+                    }
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="exercise">Exercise</Label>
             <Select

@@ -39,10 +39,12 @@ export async function createWorkoutForUser(
   userId: string,
   {
     date,
+    title,
     exerciseName,
     sets,
   }: {
     date: Date;
+    title: string | null;
     exerciseName: string;
     sets: LoggedSet[];
   },
@@ -70,7 +72,7 @@ export async function createWorkoutForUser(
 
   const [workout] = await db
     .insert(workoutsTable)
-    .values({ userId, startedAt: date, completedAt: date })
+    .values({ userId, name: title, startedAt: date, completedAt: date })
     .returning();
 
   const [workoutExercise] = await db
