@@ -1,46 +1,46 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { format, isSameDay, isToday } from "date-fns"
-import { Dumbbell, Flame, ListChecks, Weight } from "lucide-react"
+import * as React from "react";
+import { format, isSameDay, isToday } from "date-fns";
+import { Dumbbell, Flame, ListChecks, Weight } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge"
-import { Calendar } from "@/components/ui/calendar"
+import { Badge } from "@/components/ui/badge";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
-} from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import type { WorkoutWithExercises } from "@/data/workouts"
-import type { Exercise } from "@/data/exercises"
-import { LogWorkoutDialog } from "./log-workout-dialog"
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import type { WorkoutWithExercises } from "@/data/workouts";
+import type { Exercise } from "@/data/exercises";
+import { EditWorkoutDialog } from "./edit-workout-dialog";
+import { LogWorkoutDialog } from "./log-workout-dialog";
 
 export function DashboardClient({
   workouts,
   exercises,
 }: {
-  workouts: WorkoutWithExercises[]
-  exercises: Exercise[]
+  workouts: WorkoutWithExercises[];
+  exercises: Exercise[];
 }) {
-  const [selectedDate, setSelectedDate] = React.useState<Date>(new Date())
+  const [selectedDate, setSelectedDate] = React.useState<Date>(new Date());
 
   const workoutsForDate = workouts.filter((w) =>
-    isSameDay(w.startedAt, selectedDate)
-  )
+    isSameDay(w.startedAt, selectedDate),
+  );
 
   const exerciseCount = workoutsForDate.reduce(
     (sum, w) => sum + w.workoutExercises.length,
-    0
-  )
+    0,
+  );
   const setCount = workoutsForDate.reduce(
     (sum, w) =>
-      sum +
-      w.workoutExercises.reduce((s, we) => s + we.sets.length, 0),
-    0
-  )
+      sum + w.workoutExercises.reduce((s, we) => s + we.sets.length, 0),
+    0,
+  );
   const totalVolume = workoutsForDate.reduce(
     (sum, w) =>
       sum +
@@ -49,12 +49,12 @@ export function DashboardClient({
           s +
           we.sets.reduce(
             (v, set) => v + set.reps * (set.weight ? Number(set.weight) : 0),
-            0
+            0,
           ),
-        0
+        0,
       ),
-    0
-  )
+    0,
+  );
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6 p-6">
@@ -72,7 +72,7 @@ export function DashboardClient({
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Calendar</CardTitle>
-              <LogWorkoutDialog date={selectedDate} exercises={exercises} />
+              {/* <LogWorkoutDialog date={selectedDate} exercises={exercises} /> */}
             </div>
           </CardHeader>
           <CardContent>
@@ -80,7 +80,7 @@ export function DashboardClient({
               mode="single"
               selected={selectedDate}
               onSelect={(date) => {
-                if (date) setSelectedDate(date)
+                if (date) setSelectedDate(date);
               }}
               className="w-full [--cell-size:--spacing(9)]"
               classNames={{
@@ -95,9 +95,7 @@ export function DashboardClient({
           <div className="flex items-center justify-between rounded-xl bg-muted/50 px-4 py-3 ring-1 ring-foreground/5">
             <div className="w-28 shrink-0">
               <p className="font-heading text-lg font-semibold leading-none whitespace-nowrap">
-                {isToday(selectedDate)
-                  ? "Today"
-                  : format(selectedDate, "EEEE")}
+                {isToday(selectedDate) ? "Today" : format(selectedDate, "EEEE")}
               </p>
               <p className="mt-1 text-xs whitespace-nowrap text-muted-foreground">
                 {format(selectedDate, "do MMM yyyy")}
@@ -148,13 +146,21 @@ export function DashboardClient({
                         <Flame className="size-4 text-muted-foreground" />
                         {workout.name ?? "Workout"}
                       </CardTitle>
-                      <Badge variant="secondary">
-                        {workout.workoutExercises.length} exercise
-                        {workout.workoutExercises.length === 1 ? "" : "s"}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary">
+                          {workout.workoutExercises.length} exercise
+                          {workout.workoutExercises.length === 1 ? "" : "s"}
+                        </Badge>
+                        <EditWorkoutDialog
+                          workout={workout}
+                          exercises={exercises}
+                        />
+                      </div>
                     </div>
                     <CardDescription>
                       {format(workout.startedAt, "do MMM yyyy · h:mm a")}
+                      {workout.completedAt &&
+                        ` – ${format(workout.completedAt, "h:mm a")}`}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -177,7 +183,7 @@ export function DashboardClient({
                             {workoutExercise.sets.map((set) => {
                               const weight = set.weight
                                 ? Number(set.weight)
-                                : 0
+                                : 0;
                               return (
                                 <Badge
                                   key={set.id}
@@ -187,7 +193,7 @@ export function DashboardClient({
                                   {set.reps} reps
                                   {weight > 0 ? ` - ${weight}kg` : ""}
                                 </Badge>
-                              )
+                              );
                             })}
                           </div>
                         </li>
@@ -198,10 +204,11 @@ export function DashboardClient({
               ))
             )}
           </div>
+          <LogWorkoutDialog date={selectedDate} exercises={exercises} />
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function Stat({
@@ -209,9 +216,9 @@ function Stat({
   label,
   value,
 }: {
-  icon: React.ReactNode
-  label: string
-  value: React.ReactNode
+  icon: React.ReactNode;
+  label: string;
+  value: React.ReactNode;
 }) {
   return (
     <div className="flex w-16 flex-col items-center gap-0.5">
@@ -223,5 +230,5 @@ function Stat({
         {label}
       </div>
     </div>
-  )
+  );
 }

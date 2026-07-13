@@ -1,5 +1,7 @@
 import "server-only";
 
+import { and, eq } from "drizzle-orm";
+
 import db from "@/db";
 import {
   exercisesTable,
@@ -38,12 +40,14 @@ export type LoggedSet = {
 export async function createWorkoutForUser(
   userId: string,
   {
-    date,
+    startedAt,
+    completedAt,
     title,
     exerciseName,
     sets,
   }: {
-    date: Date;
+    startedAt: Date;
+    completedAt: Date | null;
     title: string | null;
     exerciseName: string;
     sets: LoggedSet[];
@@ -72,7 +76,7 @@ export async function createWorkoutForUser(
 
   const [workout] = await db
     .insert(workoutsTable)
-    .values({ userId, name: title, startedAt: date, completedAt: date })
+    .values({ userId, name: title, startedAt, completedAt })
     .returning();
 
   const [workoutExercise] = await db
@@ -90,4 +94,99 @@ export async function createWorkoutForUser(
   );
 
   return workout;
+}
+
+export async function updateWorkoutForUser(
+  userId: string,
+  workoutId: number,
+  {
+    startedAt,
+    completedAt,
+    title,
+    exerciseName,
+    sets,
+  }: {
+    startedAt: Date;
+    completedAt: Date | null;
+    title: string | null;
+    exerciseName: string;
+    sets: LoggedSet[];
+  },
+) {
+  const trimmedName = exerciseName.trim();
+  if (!trimmedName) throw new Error("Exercise name is required");
+  if (sets.length === 0) throw new Error("At least one set is required");
+
+  // The neon-http driver has no transaction support, so this runs as
+  // sequential statements rather than an atomic transaction.
+  const [workout] = await db
+    .update(workoutsTable)
+    .set({ name: title, startedAt, completedAt })
+    .where(
+      and(eq(workoutsTable.id, workoutId), eq(workoutsTable.userId, userId)),
+    )
+    .returning();
+
+  if (!workout) throw new Error("Workout not found");
+
+  let exercise = await db.query.exercisesTable.findFirst({
+    where: { name: trimmedName },
+  });
+
+  if (!exercise) {
+    [exercise] = await db
+      .insert(exercisesTable)
+      .values({ name: trimmedName })
+      .onConflictDoUpdate({
+        target: exercisesTable.name,
+        set: { updatedAt: new Date() },
+      })
+      .returning();
+  }
+
+  const existingWorkoutExercise = await db.query.workoutExercisesTable.findFirst(
+    { where: { workoutId: workout.id } },
+  );
+
+  let workoutExerciseId: number;
+  if (existingWorkoutExercise) {
+    workoutExerciseId = existingWorkoutExercise.id;
+    await db
+      .update(workoutExercisesTable)
+      .set({ exerciseId: exercise.id })
+      .where(eq(workoutExercisesTable.id, workoutExerciseId));
+    await db
+      .delete(setsTable)
+      .where(eq(setsTable.workoutExerciseId, workoutExerciseId));
+  } else {
+    const [workoutExercise] = await db
+      .insert(workoutExercisesTable)
+      .values({ workoutId: workout.id, exerciseId: exercise.id, order: 0 })
+      .returning();
+    workoutExerciseId = workoutExercise.id;
+  }
+
+  await db.insert(setsTable).values(
+    sets.map((set, index) => ({
+      workoutExerciseId,
+      setNumber: index + 1,
+      reps: set.reps,
+      weight: set.weight !== null ? set.weight.toString() : null,
+    })),
+  );
+
+  return workout;
+}
+
+export async function deleteWorkoutForUser(userId: string, workoutId: number) {
+  const [deleted] = await db
+    .delete(workoutsTable)
+    .where(
+      and(eq(workoutsTable.id, workoutId), eq(workoutsTable.userId, userId)),
+    )
+    .returning();
+
+  if (!deleted) throw new Error("Workout not found");
+
+  return deleted;
 }
