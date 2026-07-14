@@ -6,6 +6,7 @@ Before writing or generating any code, always check the relevant doc file(s) in 
 - /docs/data-fetching.md
 - /docs/data-mutation.md
 - /docs/auth.md
+- /docs/routing.md
 
 @AGENTS.md
 
