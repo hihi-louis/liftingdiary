@@ -1,6 +1,7 @@
 import "server-only";
 
 import { and, eq } from "drizzle-orm";
+import { format, isSameWeek, isSameMonth } from "date-fns";
 
 import db from "@/db";
 import {
@@ -176,6 +177,59 @@ export async function updateWorkoutForUser(
   );
 
   return workout;
+}
+
+export type WorkoutStats = {
+  daysThisWeek: number;
+  daysThisMonth: number;
+  topExercise: { name: string; percent: number } | null;
+};
+
+
+export function computeWorkoutStats(
+  workouts: WorkoutWithExercises[],
+): WorkoutStats {
+  const now = new Date();
+
+  const daysThisWeek = new Set(
+    workouts
+      .filter((w) => isSameWeek(w.startedAt, now, { weekStartsOn: 1 }))
+      .map((w) => format(w.startedAt, "yyyy-MM-dd")),
+  ).size;
+
+  const daysThisMonth = new Set(
+    workouts
+      .filter((w) => isSameMonth(w.startedAt, now))
+      .map((w) => format(w.startedAt, "yyyy-MM-dd")),
+  ).size;
+
+  let topExercise: WorkoutStats["topExercise"] = null;
+  if (workouts.length > 0) {
+    const counts = new Map<string, number>();
+    for (const workout of workouts) {
+      const name = workout.workoutExercises[0]?.exercise.name;
+      if (!name) continue;
+      counts.set(name, (counts.get(name) ?? 0) + 1);
+    }
+
+    let topName: string | null = null;
+    let topCount = 0;
+    for (const [name, count] of counts) {
+      if (count > topCount) {
+        topName = name;
+        topCount = count;
+      }
+    }
+
+    if (topName) {
+      topExercise = {
+        name: topName,
+        percent: Math.round((topCount / workouts.length) * 100),
+      };
+    }
+  }
+
+  return { daysThisWeek, daysThisMonth, topExercise };
 }
 
 export async function deleteWorkoutForUser(userId: string, workoutId: number) {
