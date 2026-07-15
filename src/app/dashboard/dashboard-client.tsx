@@ -57,7 +57,7 @@ export function DashboardClient({
   );
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-6 p-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6 p-4 sm:p-6">
       <div className="flex flex-col gap-1">
         <h1 className="font-heading text-2xl font-semibold tracking-tight">
           Dashboard
@@ -92,8 +92,8 @@ export function DashboardClient({
         </Card>
 
         <div className="flex min-w-0 flex-col gap-4">
-          <div className="flex items-center justify-between rounded-xl bg-muted/50 px-4 py-3 ring-1 ring-foreground/5">
-            <div className="w-28 shrink-0">
+          <div className="flex flex-col gap-3 rounded-xl bg-muted/50 px-4 py-3 ring-1 ring-foreground/5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+            <div className="shrink-0 sm:w-28">
               <p className="font-heading text-lg font-semibold leading-none whitespace-nowrap">
                 {isToday(selectedDate) ? "Today" : format(selectedDate, "EEEE")}
               </p>
@@ -102,7 +102,7 @@ export function DashboardClient({
               </p>
             </div>
 
-            <div className="flex items-center gap-4 text-sm">
+            <div className="flex items-center justify-between gap-4 text-sm sm:justify-start">
               <Stat
                 icon={<Dumbbell className="size-3.5" />}
                 label="exercises"
@@ -221,7 +221,7 @@ function Stat({
   value: React.ReactNode;
 }) {
   return (
-    <div className="flex w-16 flex-col items-center gap-0.5">
+    <div className="flex min-w-14 flex-col items-center gap-0.5">
       <div className="flex items-center gap-1 font-heading text-base font-semibold leading-none">
         {value}
       </div>
